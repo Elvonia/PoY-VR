@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34622.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VRMod", "VRMod\VRMod.csproj", "{F64E17A0-3F7A-47FF-8FD6-227EA3254759}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VRPlugin", "VRPlugin\VRPlugin.csproj", "{3EB8ED0B-DE42-4F0A-99E5-5773E48BD731}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug-BepInEx|Any CPU = Debug-BepInEx|Any CPU
+		Debug-MelonLoader|Any CPU = Debug-MelonLoader|Any CPU
+		Release-BepInEx|Any CPU = Release-BepInEx|Any CPU
+		Release-MelonLoader|Any CPU = Release-MelonLoader|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F64E17A0-3F7A-47FF-8FD6-227EA3254759}.Debug-BepInEx|Any CPU.ActiveCfg = Debug-BepInEx|Any CPU
+		{F64E17A0-3F7A-47FF-8FD6-227EA3254759}.Debug-BepInEx|Any CPU.Build.0 = Debug-BepInEx|Any CPU
+		{F64E17A0-3F7A-47FF-8FD6-227EA3254759}.Debug-MelonLoader|Any CPU.ActiveCfg = Debug-MelonLoader|Any CPU
+		{F64E17A0-3F7A-47FF-8FD6-227EA3254759}.Debug-MelonLoader|Any CPU.Build.0 = Debug-MelonLoader|Any CPU
+		{F64E17A0-3F7A-47FF-8FD6-227EA3254759}.Release-BepInEx|Any CPU.ActiveCfg = Release-BepInEx|Any CPU
+		{F64E17A0-3F7A-47FF-8FD6-227EA3254759}.Release-BepInEx|Any CPU.Build.0 = Release-BepInEx|Any CPU
+		{F64E17A0-3F7A-47FF-8FD6-227EA3254759}.Release-MelonLoader|Any CPU.ActiveCfg = Release-MelonLoader|Any CPU
+		{F64E17A0-3F7A-47FF-8FD6-227EA3254759}.Release-MelonLoader|Any CPU.Build.0 = Release-MelonLoader|Any CPU
+		{3EB8ED0B-DE42-4F0A-99E5-5773E48BD731}.Debug-BepInEx|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EB8ED0B-DE42-4F0A-99E5-5773E48BD731}.Debug-BepInEx|Any CPU.Build.0 = Debug|Any CPU
+		{3EB8ED0B-DE42-4F0A-99E5-5773E48BD731}.Debug-MelonLoader|Any CPU.ActiveCfg = Debug-MelonLoader|Any CPU
+		{3EB8ED0B-DE42-4F0A-99E5-5773E48BD731}.Debug-MelonLoader|Any CPU.Build.0 = Debug-MelonLoader|Any CPU
+		{3EB8ED0B-DE42-4F0A-99E5-5773E48BD731}.Release-BepInEx|Any CPU.ActiveCfg = Release-BepInEx|Any CPU
+		{3EB8ED0B-DE42-4F0A-99E5-5773E48BD731}.Release-BepInEx|Any CPU.Build.0 = Release-BepInEx|Any CPU
+		{3EB8ED0B-DE42-4F0A-99E5-5773E48BD731}.Release-MelonLoader|Any CPU.ActiveCfg = Release-MelonLoader|Any CPU
+		{3EB8ED0B-DE42-4F0A-99E5-5773E48BD731}.Release-MelonLoader|Any CPU.Build.0 = Release-MelonLoader|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A9A65FBA-ACB7-4234-A5D7-D15FA3478CDD}
+	EndGlobalSection
+EndGlobal
