@@ -195,6 +195,7 @@ namespace PoY_VR.Plugin
                         newValue.GetValue().Set("OpenVR");
                         arrayField.SetChildrenList(new[] { newValue });
                         byte[] buffer;
+
                         using (MemoryStream memoryStream = new MemoryStream())
                         {
                             using (AssetsFileWriter writer = new AssetsFileWriter(memoryStream))
