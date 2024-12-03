@@ -32,6 +32,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using UnityEngine.Rendering;
 
 [assembly: MelonInfo(typeof(PoY_VR.Plugin.VRPlugin), "VR Patcher", PluginInfo.PLUGIN_VERSION, "Kalico")]
 [assembly: MelonGame("TraipseWare", "Peaks of Yore")]
@@ -159,19 +160,33 @@ namespace PoY_VR.Plugin
             MelonLogger.Msg("Patching globalgamemanagers...");
             MelonLogger.Msg($"Using classData file from path '{classDataPath}'");
 
-            try
+            AssetsManager am = new AssetsManager();
+            am.LoadClassDatabase(classDataPath);
+            AssetsFileInstance ggm = am.LoadAssetsFile(gameManagersBackupPath, false);
+
+            for (int num = 0; num < ggm.table.assetFileInfoCount; num++)
             {
-                AssetsManager am = new AssetsManager();
-                am.LoadClassDatabase(classDataPath);
-
-                AssetsFileInstance ggm = am.LoadAssetsFile(gameManagersBackupPath, false);
-                AssetFileInfoEx assetInfo = ggm.table.GetAssetInfo(11);
-                AssetTypeInstance ati = am.GetTypeInstance(ggm.file, assetInfo, false);
-                AssetTypeValueField assetTypeValueField = ati?.GetBaseField(0);
-                AssetTypeValueField enabledVRDevices = assetTypeValueField?.Get("enabledVRDevices");
-
-                if (enabledVRDevices != null)
+                try
                 {
+                    AssetFileInfoEx assetInfo = ggm.table.GetAssetInfo(num);
+
+                    if (assetInfo == null) 
+                    {
+                        MelonLogger.Msg($"Failed to load assetInfo at index: {num}, skipping.");
+                        continue; 
+                    }
+
+                    AssetTypeInstance ati = am.GetTypeInstance(ggm.file, assetInfo, false);
+                    AssetTypeValueField assetTypeValueField = ati.GetBaseField(0);
+                    AssetTypeValueField enabledVRDevices = assetTypeValueField.Get("enabledVRDevices");
+
+                    if (enabledVRDevices.IsDummy())
+                    {
+                        MelonLogger.Msg($"Found enabledVRDevices.IsDummy() at index: {num}, skipping.");
+                        continue;
+                    }
+
+                    MelonLogger.Msg($"Found enabledVRDevices at asset index: {num}, patching.");
                     AssetTypeValueField arrayField = enabledVRDevices.Get("Array");
 
                     if (arrayField != null)
@@ -179,7 +194,6 @@ namespace PoY_VR.Plugin
                         AssetTypeValueField newValue = ValueBuilder.DefaultValueFieldFromArrayTemplate(arrayField);
                         newValue.GetValue().Set("OpenVR");
                         arrayField.SetChildrenList(new[] { newValue });
-
                         byte[] buffer;
                         using (MemoryStream memoryStream = new MemoryStream())
                         {
@@ -209,10 +223,10 @@ namespace PoY_VR.Plugin
                         return;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                MelonLogger.Error($"Error processing asset: {ex.Message}");
+                catch (Exception ex)
+                {
+                    MelonLogger.Warning($"Error processing asset at index {num}: {ex.Message}");
+                }
             }
         }
 
