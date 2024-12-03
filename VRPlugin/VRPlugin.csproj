@@ -43,7 +43,26 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="res\AudioPluginOculusSpatializer.dll" />
+	  <None Remove="res\cldb.dat" />
+	  <None Remove="res\openvr_api.dll" />
+	  <None Remove="res\OVRGamepad.dll" />
+	  <None Remove="res\OVRPlugin.dll" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="res\AudioPluginOculusSpatializer.dll" />
+	  <EmbeddedResource Include="res\cldb.dat" />
+	  <EmbeddedResource Include="res\openvr_api.dll" />
+	  <EmbeddedResource Include="res\OVRGamepad.dll" />
+	  <EmbeddedResource Include="res\OVRPlugin.dll" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="UnityEngine.Modules" Version="2019.4.36" PrivateAssets="all" />
+		<PackageReference Include="AssetsTools.NET" Version="2.0.9">
+		  <IncludeAssets>all</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(OS)' == 'Unix'">

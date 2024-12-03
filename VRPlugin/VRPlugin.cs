@@ -24,7 +24,17 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+using AssetsTools.NET;
+using AssetsTools.NET.Extra;
 using MelonLoader;
+using MelonLoader.Utils;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+
+[assembly: MelonInfo(typeof(PoY_VR.Plugin.VRPlugin), "VR Patcher", PluginInfo.PLUGIN_VERSION, "Kalico")]
+[assembly: MelonGame("TraipseWare", "Peaks of Yore")]
 
 namespace PoY_VR.Plugin
 {
@@ -32,8 +42,219 @@ namespace PoY_VR.Plugin
     {
         public override void OnPreInitialization()
         {
-            base.OnPreInitialization();
-            // Patch_Globglogabgalab();
+            string classDataTempPath = null;
+
+            try
+            {
+                MelonLogger.Msg("Starting VR patch process...");
+
+                string dataPath = MelonEnvironment.UnityGameDataDirectory;
+                string gameManagersPath = Path.Combine(dataPath, "globalgamemanagers");
+                string gameManagersBackupPath = CreateGameManagersBackup(gameManagersPath);
+                string patcherPath = MelonEnvironment.UserLibsDirectory;
+
+                classDataTempPath = ExtractEmbeddedDatFile(
+                    Assembly.GetExecutingAssembly().GetName().Name + ".res.cldb.dat", Path.GetTempFileName());
+
+                CopyPlugins(patcherPath, dataPath);
+                PatchVR(gameManagersBackupPath, gameManagersPath, classDataTempPath);
+
+                MelonLogger.Msg("Patched successfully!");
+            }
+            catch (Exception ex)
+            {
+                MelonLogger.Error($"Error during patching: {ex}");
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(classDataTempPath) && File.Exists(classDataTempPath))
+                {
+                    try
+                    {
+                        File.Delete(classDataTempPath);
+                        MelonLogger.Msg($"Temporary file '{classDataTempPath}' deleted.");
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        MelonLogger.Warning($"Failed to clean up temporary file '{classDataTempPath}': {cleanupEx.Message}");
+                    }
+                }
+            }
+        }
+
+        private static void CopyPlugins(string patcherPath, string dataPath)
+        {
+            MelonLogger.Msg("Copying plugins...");
+
+            string gamePluginsPath = Path.Combine(dataPath, "Plugins", "x86_64");
+
+            if (!Directory.Exists(gamePluginsPath))
+            {
+                MelonLogger.Error("Plugins folder not found.");
+                return;
+            }
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(gamePluginsPath);
+            FileInfo[] files = directoryInfo.GetFiles();
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            string assemblyName = assembly.GetName().Name;
+            string[] resourceNames = assembly.GetManifestResourceNames();
+            MelonLogger.Msg($"Found embedded resources:\n{string.Join(",\n", resourceNames)}");
+
+            string[] pluginArray = new string[]
+            {
+                "AudioPluginOculusSpatializer.dll",
+                "openvr_api.dll",
+                "OVRGamepad.dll",
+                "OVRPlugin.dll"
+            };
+
+            for (int i = 0; i < pluginArray.Length; i++)
+            {
+                string pluginName = pluginArray[i];
+                
+                if (!Array.Exists<FileInfo>(files, (FileInfo file) => pluginName == file.Name))
+                {
+                    using (Stream manifestResourceStream = 
+                        assembly.GetManifestResourceStream(assemblyName + ".res." + pluginName))
+                    {
+                        using (FileStream fileStream = 
+                            new FileStream(Path.Combine(directoryInfo.FullName, pluginName), FileMode.Create, FileAccess.Write, FileShare.Delete))
+                        {
+                            MelonLogger.Msg("Copying " + pluginName);
+                            manifestResourceStream.CopyTo(fileStream);
+                        }
+                    }
+                }
+                else
+                {
+                    MelonLogger.Msg($"Plugin: {pluginName} exists.");
+                }
+            }
+
+            MelonLogger.Msg("VR plugins copied successfully.");
+        }
+
+        private static string CreateGameManagersBackup(string gameManagersPath)
+        {
+            MelonLogger.Msg($"Backing up '{gameManagersPath}'...");
+            string backupPath = gameManagersPath + ".bak";
+
+            if (File.Exists(backupPath))
+            {
+                MelonLogger.Msg("Backup already exists.");
+                return backupPath;
+            }
+
+            File.Copy(gameManagersPath, backupPath);
+            MelonLogger.Msg($"Created backup in '{backupPath}'");
+
+            return backupPath;
+        }
+
+        private static void PatchVR(string gameManagersBackupPath, string gameManagersPath, string classDataPath)
+        {
+            MelonLogger.Msg("Patching globalgamemanagers...");
+            MelonLogger.Msg($"Using classData file from path '{classDataPath}'");
+
+            AssetsManager am = new AssetsManager();
+            am.LoadClassDatabase(classDataPath);
+            AssetsFileInstance ggm = am.LoadAssetsFile(gameManagersBackupPath, false);
+
+            for (int num = 0; num < ggm.table.assetFileInfoCount; num++)
+            {
+                try
+                {
+                    AssetFileInfoEx assetInfo = ggm.table.GetAssetInfo(num);
+                    AssetTypeInstance ati = am.GetTypeInstance(ggm.file, assetInfo, false);
+                    AssetTypeValueField assetTypeValueField = ati?.GetBaseField(0);
+                    AssetTypeValueField enabledVRDevices = assetTypeValueField?.Get("enabledVRDevices");
+
+                    if (enabledVRDevices != null)
+                    {
+                        AssetTypeValueField arrayField = enabledVRDevices.Get("Array");
+
+                        if (arrayField != null)
+                        {
+                            AssetTypeValueField newValue = ValueBuilder.DefaultValueFieldFromArrayTemplate(arrayField);
+                            newValue.GetValue().Set("OpenVR");
+                            arrayField.SetChildrenList(new[] { newValue });
+
+                            byte[] buffer;
+                            using (MemoryStream memoryStream = new MemoryStream())
+                            {
+                                using (AssetsFileWriter writer = new AssetsFileWriter(memoryStream))
+                                {
+                                    writer.bigEndian = false;
+                                    assetTypeValueField.Write(writer, 0);
+                                    buffer = memoryStream.ToArray();
+                                }
+                            }
+
+                            List<AssetsReplacer> replacers = new List<AssetsReplacer>
+                            {
+                                new AssetsReplacerFromMemory(0, assetInfo.index, (int)assetInfo.curFileType, ushort.MaxValue, buffer)
+                            };
+
+                            using (MemoryStream memoryStream = new MemoryStream())
+                            {
+                                using (AssetsFileWriter writer = new AssetsFileWriter(memoryStream))
+                                {
+                                    ggm.file.Write(writer, 0, replacers, 0, null);
+                                    ggm.stream.Close();
+                                    File.WriteAllBytes(gameManagersPath, memoryStream.ToArray());
+                                }
+                            }
+
+                            return;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MelonLogger.Warning($"Error processing asset at index {num}: {ex.Message}");
+                }
+            }
+        }
+
+        private static string ExtractEmbeddedDatFile(string resourceName, string outputPath)
+        {
+            MelonLogger.Msg($"Extracting embedded resource '{resourceName}' to '{outputPath}'...");
+
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            using (Stream resourceStream = assembly.GetManifestResourceStream(resourceName))
+            {
+                if (resourceStream == null)
+                {
+                    MelonLogger.Error($"Embedded resource '{resourceName}' not found.");
+                    throw new FileNotFoundException($"Resource '{resourceName}' not found in assembly.");
+                }
+
+                using (FileStream fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
+                {
+                    resourceStream.CopyTo(fileStream);
+                }
+            }
+
+            MelonLogger.Msg($"Embedded resource '{resourceName}' successfully extracted to '{outputPath}'.");
+            return outputPath;
+        }
+
+        private void LoadEmbeddedDLL(string resourceName)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var stream = assembly.GetManifestResourceStream(resourceName))
+            {
+                if (stream == null)
+                {
+                    MelonLogger.Error($"Failed to load embedded resource '{resourceName}'.");
+                    return;
+                }
+
+                byte[] assemblyData = new byte[stream.Length];
+                stream.Read(assemblyData, 0, assemblyData.Length);
+                Assembly.Load(assemblyData);
+            }
         }
     }
 }
