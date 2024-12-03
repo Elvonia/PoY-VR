@@ -24,8 +24,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-using AssetsTools.NET;
-using AssetsTools.NET.Extra;
+using AssetsToolsCustom.NET;
+using AssetsToolsCustom.NET.Extra;
 using MelonLoader;
 using MelonLoader.Utils;
 using System;
@@ -71,6 +71,8 @@ namespace PoY_VR.Plugin
                 {
                     try
                     {
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
                         File.Delete(classDataTempPath);
                         MelonLogger.Msg($"Temporary file '{classDataTempPath}' deleted.");
                     }
@@ -157,63 +159,60 @@ namespace PoY_VR.Plugin
             MelonLogger.Msg("Patching globalgamemanagers...");
             MelonLogger.Msg($"Using classData file from path '{classDataPath}'");
 
-            AssetsManager am = new AssetsManager();
-            am.LoadClassDatabase(classDataPath);
-            AssetsFileInstance ggm = am.LoadAssetsFile(gameManagersBackupPath, false);
-
-            for (int num = 0; num < ggm.table.assetFileInfoCount; num++)
+            try
             {
-                try
+                AssetsManager am = new AssetsManager();
+                am.LoadClassDatabase(classDataPath);
+
+                AssetsFileInstance ggm = am.LoadAssetsFile(gameManagersBackupPath, false);
+                AssetFileInfoEx assetInfo = ggm.table.GetAssetInfo(11);
+                AssetTypeInstance ati = am.GetTypeInstance(ggm.file, assetInfo, false);
+                AssetTypeValueField assetTypeValueField = ati?.GetBaseField(0);
+                AssetTypeValueField enabledVRDevices = assetTypeValueField?.Get("enabledVRDevices");
+
+                if (enabledVRDevices != null)
                 {
-                    AssetFileInfoEx assetInfo = ggm.table.GetAssetInfo(num);
-                    AssetTypeInstance ati = am.GetTypeInstance(ggm.file, assetInfo, false);
-                    AssetTypeValueField assetTypeValueField = ati?.GetBaseField(0);
-                    AssetTypeValueField enabledVRDevices = assetTypeValueField?.Get("enabledVRDevices");
+                    AssetTypeValueField arrayField = enabledVRDevices.Get("Array");
 
-                    if (enabledVRDevices != null)
+                    if (arrayField != null)
                     {
-                        AssetTypeValueField arrayField = enabledVRDevices.Get("Array");
+                        AssetTypeValueField newValue = ValueBuilder.DefaultValueFieldFromArrayTemplate(arrayField);
+                        newValue.GetValue().Set("OpenVR");
+                        arrayField.SetChildrenList(new[] { newValue });
 
-                        if (arrayField != null)
+                        byte[] buffer;
+                        using (MemoryStream memoryStream = new MemoryStream())
                         {
-                            AssetTypeValueField newValue = ValueBuilder.DefaultValueFieldFromArrayTemplate(arrayField);
-                            newValue.GetValue().Set("OpenVR");
-                            arrayField.SetChildrenList(new[] { newValue });
-
-                            byte[] buffer;
-                            using (MemoryStream memoryStream = new MemoryStream())
+                            using (AssetsFileWriter writer = new AssetsFileWriter(memoryStream))
                             {
-                                using (AssetsFileWriter writer = new AssetsFileWriter(memoryStream))
-                                {
-                                    writer.bigEndian = false;
-                                    assetTypeValueField.Write(writer, 0);
-                                    buffer = memoryStream.ToArray();
-                                }
+                                writer.bigEndian = false;
+                                assetTypeValueField.Write(writer, 0);
+                                buffer = memoryStream.ToArray();
                             }
+                        }
 
-                            List<AssetsReplacer> replacers = new List<AssetsReplacer>
+                        List<AssetsReplacer> replacers = new List<AssetsReplacer>
                             {
                                 new AssetsReplacerFromMemory(0, assetInfo.index, (int)assetInfo.curFileType, ushort.MaxValue, buffer)
                             };
 
-                            using (MemoryStream memoryStream = new MemoryStream())
+                        using (MemoryStream memoryStream = new MemoryStream())
+                        {
+                            using (AssetsFileWriter writer = new AssetsFileWriter(memoryStream))
                             {
-                                using (AssetsFileWriter writer = new AssetsFileWriter(memoryStream))
-                                {
-                                    ggm.file.Write(writer, 0, replacers, 0, null);
-                                    ggm.stream.Close();
-                                    File.WriteAllBytes(gameManagersPath, memoryStream.ToArray());
-                                }
+                                ggm.file.Write(writer, 0, replacers, 0, null);
+                                ggm.stream.Close();
+                                File.WriteAllBytes(gameManagersPath, memoryStream.ToArray());
                             }
-
-                            return;
                         }
+
+                        return;
                     }
                 }
-                catch (Exception ex)
-                {
-                    MelonLogger.Warning($"Error processing asset at index {num}: {ex.Message}");
-                }
+            }
+            catch (Exception ex)
+            {
+                MelonLogger.Error($"Error processing asset: {ex.Message}");
             }
         }
 
@@ -221,7 +220,7 @@ namespace PoY_VR.Plugin
         {
             MelonLogger.Msg($"Extracting embedded resource '{resourceName}' to '{outputPath}'...");
 
-            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            var assembly = Assembly.GetExecutingAssembly();
             using (Stream resourceStream = assembly.GetManifestResourceStream(resourceName))
             {
                 if (resourceStream == null)
@@ -238,23 +237,6 @@ namespace PoY_VR.Plugin
 
             MelonLogger.Msg($"Embedded resource '{resourceName}' successfully extracted to '{outputPath}'.");
             return outputPath;
-        }
-
-        private void LoadEmbeddedDLL(string resourceName)
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            using (var stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                if (stream == null)
-                {
-                    MelonLogger.Error($"Failed to load embedded resource '{resourceName}'.");
-                    return;
-                }
-
-                byte[] assemblyData = new byte[stream.Length];
-                stream.Read(assemblyData, 0, assemblyData.Length);
-                Assembly.Load(assemblyData);
-            }
         }
     }
 }

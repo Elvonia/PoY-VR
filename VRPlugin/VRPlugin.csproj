@@ -60,13 +60,16 @@
 
 	<ItemGroup>
 		<PackageReference Include="UnityEngine.Modules" Version="2019.4.36" PrivateAssets="all" />
-		<PackageReference Include="AssetsTools.NET" Version="2.0.9">
-		  <IncludeAssets>all</IncludeAssets>
-		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(OS)' == 'Unix'">
 		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="AssetsToolsCustom.NET">
+	    <HintPath>res\AssetsToolsCustom.NET.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
 	<Target Name="CopyPackageAssembliesToSubFolder" AfterTargets="ResolveReferences">
