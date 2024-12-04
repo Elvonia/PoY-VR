@@ -26,6 +26,7 @@
 
 using MelonLoader;
 using UnityEngine;
+using Valve.VR;
 
 [assembly: MelonInfo(typeof(PoY_VR.Mod.VRMod), "VR Mod", PluginInfo.PLUGIN_VERSION, "Kalico")]
 [assembly: MelonGame("TraipseWare", "Peaks of Yore")]
@@ -34,16 +35,27 @@ namespace PoY_VR.Mod
 {
     public class VRMod : MelonMod
     {
+        VRCamera vrCam;
+
         public override void OnInitializeMelon()
         {
             MelonLogger.Msg("Starting VR Mod...");
             VR.Initialize();
+            vrCam = new VRCamera();
+            vrCam.Initialize(true);
         }
 
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
             base.OnSceneWasLoaded(buildIndex, sceneName);
-            //VRCamera.Initialize();
+
+            MelonLogger.Msg($"Scene loaded: {sceneName}");
+            vrCam.Initialize(false);
+        }
+
+        public override void OnUpdate()
+        {
+            base.OnUpdate();
         }
 
         public override void OnApplicationQuit()
