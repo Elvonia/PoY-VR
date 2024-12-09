@@ -33,6 +33,8 @@ namespace PoY_VR.Mod
         public static void Initialize()
         {
             EVRInitError error = EVRInitError.None;
+
+            // TODO: Check if this allows the initialization of VR without enabledVRDevices BuildSettings
             OpenVR.Init(ref error, EVRApplicationType.VRApplication_Scene);
 
             if (error != EVRInitError.None)
