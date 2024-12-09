@@ -24,8 +24,6 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-using MelonLoader;
-using MelonLoader.Utils;
 using Valve.VR;
 
 namespace PoY_VR.Mod
@@ -34,22 +32,24 @@ namespace PoY_VR.Mod
     {
         public static void Initialize()
         {
-            //string actionsPath;
+            EVRInitError error = EVRInitError.None;
+            OpenVR.Init(ref error, EVRApplicationType.VRApplication_Scene);
 
-            try
+            if (error != EVRInitError.None)
             {
-                SteamVR.Initialize();
-                //actionsPath = MelonEnvironment.UserDataDirectory + "actions.json";
-                //SteamVR_Input.HasActionPath(actionsPath);
-                //SteamVR_Input.Initialize();
-                SteamVR_Settings.instance.pauseGameWhenDashboardVisible = true;
-                MelonLogger.Msg("SteamVR Input system initialized successfully.");
+                Logger.Error($"Failed to initialize OpenVR: {error}");
+                return;
             }
-            catch (System.Exception ex)
-            {
-                MelonLogger.Msg($"Failed to initialize SteamVR: {ex.Message}");
-            }
-            
+        }
+
+        public static void UpdateInputs()
+        {
+            //
+        }
+
+        public static void Shutdown()
+        {
+            OpenVR.Shutdown();
         }
     }
 }

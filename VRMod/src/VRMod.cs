@@ -25,6 +25,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 using MelonLoader;
+using MelonLoader.Utils;
+using System.IO;
 using UnityEngine;
 using Valve.VR;
 
@@ -35,32 +37,50 @@ namespace PoY_VR.Mod
 {
     public class VRMod : MelonMod
     {
-        VRCamera vrCam;
+        VRInputManager vrInputManager;
+        VRCameraRig vrCameraRig;
 
         public override void OnInitializeMelon()
         {
-            MelonLogger.Msg("Starting VR Mod...");
+            base.OnInitializeMelon();
+
+            Logger.Log("Initializing SteamVR Mod...");
             VR.Initialize();
-            vrCam = new VRCamera();
-            vrCam.Initialize(true);
+            vrInputManager = new VRInputManager();
+            vrInputManager.Initialize();
         }
 
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
             base.OnSceneWasLoaded(buildIndex, sceneName);
 
-            MelonLogger.Msg($"Scene loaded: {sceneName}");
-            vrCam.Initialize(false);
+            if (buildIndex == 0 && vrCameraRig == null)
+            {
+                vrCameraRig = new VRCameraRig();
+                vrCameraRig.Initialize();
+            }
+
+            Logger.Log($"Scene index: {buildIndex}");
+            Logger.Log($"Scene name: {sceneName}");
+
+            vrCameraRig.DisableExistingPlayerCamera();
+            vrCameraRig.DisablePostProcessing();
+            vrCameraRig.UpdateCameraRigTransform();
         }
 
         public override void OnUpdate()
         {
             base.OnUpdate();
+            if (vrInputManager != null && vrCameraRig != null)
+            {
+                vrInputManager.UpdateInputs(vrCameraRig.cameraRig);
+            }
         }
 
         public override void OnApplicationQuit()
         {
-            MelonLogger.Msg("Shutting down VR Mod...");
+            Logger.Log("SteamVR shut down.");
+            base.OnApplicationQuit();
         }
     }
 }

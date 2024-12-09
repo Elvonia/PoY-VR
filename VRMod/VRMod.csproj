@@ -43,16 +43,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="res\actions.json" />
-    <None Remove="res\vrassetbundle" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="res\actions.json" />
-    <EmbeddedResource Include="res\vrassetbundle" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="UnityEngine.Modules" Version="2019.4.36" PrivateAssets="all" />
   </ItemGroup>
 
@@ -66,6 +56,24 @@
     </Reference>
     <Reference Include="Rewired_Windows">
       <HintPath>libs\Rewired_Windows.dll</HintPath>
+    </Reference>
+    <Reference Include="SteamVR_Actions">
+      <HintPath>libs\SteamVR_Actions.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>libs\Unity.InputSystem.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.XR.CoreUtils">
+      <HintPath>libs\Unity.XR.CoreUtils.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.XR.Interaction.Toolkit">
+      <HintPath>libs\Unity.XR.Interaction.Toolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.XR.Management">
+      <HintPath>libs\Unity.XR.Management.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.XR.OpenVR">
+      <HintPath>libs\Unity.XR.OpenVR.dll</HintPath>
     </Reference>
     <Reference Include="Valve.VR">
       <HintPath>libs\SteamVR.dll</HintPath>

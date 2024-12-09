@@ -46,16 +46,20 @@
 	  <None Remove="res\AudioPluginOculusSpatializer.dll" />
 	  <None Remove="res\cldb.dat" />
 	  <None Remove="res\openvr_api.dll" />
-	  <None Remove="res\OVRGamepad.dll" />
 	  <None Remove="res\OVRPlugin.dll" />
+	  <None Remove="res\Rewired_DirectInput.dll" />
+	  <None Remove="res\Rewired_WindowsGamingInput.dll" />
+	  <None Remove="res\ucrtbased.dll" />
+	  <None Remove="res\XRSDKOpenVR.dll" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <EmbeddedResource Include="res\AudioPluginOculusSpatializer.dll" />
 	  <EmbeddedResource Include="res\cldb.dat" />
 	  <EmbeddedResource Include="res\openvr_api.dll" />
-	  <EmbeddedResource Include="res\OVRGamepad.dll" />
 	  <EmbeddedResource Include="res\OVRPlugin.dll" />
+	  <EmbeddedResource Include="res\Rewired_DirectInput.dll" />
+	  <EmbeddedResource Include="res\Rewired_WindowsGamingInput.dll" />
 	</ItemGroup>
 
 	<ItemGroup>

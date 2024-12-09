@@ -108,8 +108,9 @@ namespace PoY_VR.Plugin
             {
                 "AudioPluginOculusSpatializer.dll",
                 "openvr_api.dll",
-                "OVRGamepad.dll",
-                "OVRPlugin.dll"
+                "OVRPlugin.dll",
+                "Rewired_DirectInput.dll",
+                "Rewired_WindowsGamingInput.dll"
             };
 
             for (int i = 0; i < pluginArray.Length; i++)
