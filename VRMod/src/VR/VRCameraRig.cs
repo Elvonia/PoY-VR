@@ -42,6 +42,8 @@ namespace PoY_VR.Mod
             }
 
             cameraRig = new GameObject("CameraRig");
+            //cameraRig.AddComponent<ClimbController>();
+
             GameObject camera = new GameObject("Camera");
             GameObject leftHand = new GameObject("LeftHand");
             GameObject rightHand = new GameObject("RightHand");
@@ -58,15 +60,15 @@ namespace PoY_VR.Mod
             camera.gameObject.tag = "MainCamera";
             camera.AddComponent<SteamVR_CameraHelper>();
 
-            leftHand.AddComponent<SteamVR_RenderModel>();
-            rightHand.AddComponent<SteamVR_RenderModel>();
-
             mainCamera.cullingMask = 386137879;
             mainCamera.farClipPlane = 12000f;
             mainCamera.fieldOfView = 110f;
             mainCamera.nearClipPlane = 0.01f;
             mainCamera.renderingPath = RenderingPath.DeferredShading;
             mainCamera.stereoTargetEye = StereoTargetEyeMask.Both;
+
+            leftModel.AddComponent<SteamVR_RenderModel>();
+            rightModel.AddComponent<SteamVR_RenderModel>();
 
             SteamVR_Behaviour_Pose leftHandPose = leftHand.AddComponent<SteamVR_Behaviour_Pose>();
             SteamVR_Behaviour_Pose rightHandPose = rightHand.AddComponent<SteamVR_Behaviour_Pose>();

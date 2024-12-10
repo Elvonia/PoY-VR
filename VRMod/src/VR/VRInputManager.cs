@@ -82,8 +82,10 @@ namespace PoY_VR.Mod
             if (squeezeValueRight > 0)
                 Logger.Log($"Squeeze Right Value: {squeezeValueRight}");
 
-            Vector2 moveInput = move.GetAxis(SteamVR_Input_Sources.Any);
-            Logger.Log($"Move Input: {moveInput}");
+            /*Vector2 moveInput = move.GetAxis(SteamVR_Input_Sources.Any);
+            if (moveInput != null)
+                Logger.Log($"Move Input: {moveInput}");*/
+
         }
 
         public void Shutdown()

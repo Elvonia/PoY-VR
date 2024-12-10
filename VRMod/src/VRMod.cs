@@ -66,6 +66,9 @@ namespace PoY_VR.Mod
             vrCameraRig.DisableExistingPlayerCamera();
             vrCameraRig.DisablePostProcessing();
             vrCameraRig.UpdateCameraRigTransform();
+
+            if (!vrCameraRig.cameraRig.GetComponent<ClimbController>())
+                vrCameraRig.cameraRig.AddComponent<ClimbController>();
         }
 
         public override void OnUpdate()
